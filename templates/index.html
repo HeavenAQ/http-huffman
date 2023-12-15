@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title></title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="css/style.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-zinc-800">
+    <section
+      class="pt-8 mx-auto mt-20 w-2/3 rounded-2xl h-[80vh] bg-zinc-300"
+      id="contact_us"
+    >
+      <div class="pt-10 mx-auto w-4/5 lg:w-2/3 max-w-[1000px]">
+        <h1
+          class="mb-8 text-2xl font-black text-center uppercase lg:mb-12 lg:text-3xl"
+        >
+          File Compressor / Decompressor
+        </h1>
+        <form
+          class="p-6 w-full rounded-xl"
+          action="/upload"
+          method="POST"
+          enctype="multipart/form-data"
+          id="upload-form"
+        >
+          <div class="flex flex-wrap -mx-3 mb-6">
+            <div class="px-3 mb-6 w-full md:mb-0 md:w-1/2">
+              <input
+                class="block py-3 px-4 mb-3 w-full leading-tight rounded rounded-xl border appearance-none"
+                id="input-file"
+                type="file"
+                placeholder="input file"
+                name="in_file"
+                required
+              />
+            </div>
+            <div class="px-3 mb-6 w-full md:mb-0 md:w-1/2">
+              <input
+                ref="nameRef"
+                class="block py-4 px-4 mb-3 w-full leading-tight rounded rounded-xl border appearance-none"
+                id="grid-first-name"
+                type="text"
+                placeholder="output file"
+                name="out_file"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="flex flex-row justify-center items-center -mx-3 mb-6">
+            <div
+              class="flex justify-center items-start px-3 mb-6 w-full h-full rounded-xl md:mb-0 md:w-1/2"
+            >
+              <select
+                ref="serviceTypeRef"
+                class="block py-3 px-4 w-full leading-tight rounded rounded-xl border appearance-none"
+                id="service-type"
+                name="service_type"
+              >
+                <option value="compress">Compress</option>
+                <option value="decompress">Decompress</option>
+              </select>
+            </div>
+            <div
+              class="flex justify-center items-start px-3 mb-6 w-full h-full md:mb-0 md:w-1/2"
+            >
+              <button
+                type="submit"
+                class="inline-flex overflow-hidden relative justify-center items-center py-3 px-6 w-full h-full font-medium rounded-xl transition-all bg-zinc-500 group"
+              >
+                <span
+                  class="inline-block absolute top-0 right-0 w-4 h-4 rounded transition-all duration-500 ease-in-out group-hover:-mt-4 group-hover:-mr-4 bg-zinc-700"
+                >
+                  <span
+                    class="absolute top-0 right-0 w-5 h-5 rotate-45 translate-x-1/2 -translate-y-1/2 bg-zinc-300"
+                  ></span>
+                </span>
+                <span
+                  class="absolute bottom-0 left-0 w-full h-full rounded-2xl transition-all duration-500 ease-in-out delay-200 -translate-x-full translate-y-full group-hover:mb-12 group-hover:translate-x-0 bg-zinc-600"
+                ></span>
+                <span
+                  class="relative w-full font-bold text-center text-white transition-colors duration-200 ease-in-out group-hover:text-white"
+                >
+                  EXECUTE
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+        <form
+          class="px-6 w-full rounded-xl"
+          action="/download"
+          method="GET"
+          id="download-form"
+        >
+          <div class="flex flex-row justify-center items-center -mx-3 mb-6">
+            <div class="px-3 mb-6 w-full md:mb-0 md:w-1/2">
+              <input
+                ref="nameRef"
+                class="block py-3 px-4 w-full leading-tight rounded rounded-xl border appearance-none"
+                id="grid-first-name"
+                type="text"
+                placeholder="output file"
+                name="out_file"
+                required
+              />
+            </div>
+            <div
+              class="flex justify-center items-start px-3 mb-6 w-full h-full md:mb-0 md:w-1/2"
+            >
+              <button
+                type="submit"
+                class="inline-flex overflow-hidden relative justify-center items-center py-3 px-6 w-full h-full font-medium bg-red-500 rounded-xl transition-all group"
+              >
+                <span
+                  class="inline-block absolute top-0 right-0 w-4 h-4 bg-red-700 rounded transition-all duration-500 ease-in-out group-hover:-mt-4 group-hover:-mr-4"
+                >
+                  <span
+                    class="absolute top-0 right-0 w-5 h-5 rotate-45 translate-x-1/2 -translate-y-1/2 bg-zinc-300"
+                  ></span>
+                </span>
+                <span
+                  class="absolute bottom-0 left-0 w-full h-full bg-red-600 rounded-2xl transition-all duration-500 ease-in-out delay-200 -translate-x-full translate-y-full group-hover:mb-12 group-hover:translate-x-0"
+                ></span>
+                <span
+                  class="relative w-full font-bold text-center text-white transition-colors duration-200 ease-in-out group-hover:text-white"
+                >
+                  DOWNLOAD
+                </span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+    <script>
+      document
+        .getElementById("upload-form")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const form = e.target;
+          const data = new FormData(form);
+          const dataArr = Array.from(data);
+          data.delete("out_file");
+          data.delete("service_type");
+          try {
+            const response = fetch(
+              `/upload?${dataArr[1][0]}=${dataArr[1][1]}&${dataArr[2][0]}=${dataArr[2][1]}`,
+              {
+                method: "POST",
+                body: data,
+              },
+            );
+          } catch (error) {
+            console.log(error);
+          }
+        });
+    </script>
+  </body>
+</html>

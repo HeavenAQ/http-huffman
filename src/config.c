@@ -29,6 +29,8 @@ static void print_help(void)
 {
     printf("Usage: ./main [OPTIONS]\n");
     printf("Options:\n");
+    printf("  -c, --compress        Compress the input file\n");
+    printf("  -d, --decompress      Decompress the input file\n");
     printf("  -i, --input <file>    The input file\n");
     printf("  -o, --output <file>   The output file\n");
     printf("  -h, --help            Print this message\n");
@@ -44,16 +46,16 @@ static void print_help(void)
 
 static Config *init_config(void)
 {
-    Config *config = (Config *)must_malloc(sizeof(Config));
+    Config *config = (Config *)must_calloc(1, sizeof(Config));
     config->input_file = NULL;
     config->output_file = NULL;
-    config->server_mode = false;
+    config->using_server = false;
     return config;
 }
 
 inline static void chk_config(Config *config)
 {
-    if (!config->server_mode) {
+    if (!config->using_server) {
         check_arg(config->input_file, "No input file");
         check_arg(config->output_file, "No output file");
     }
@@ -75,6 +77,10 @@ Config *new_config(const int argc, const char *argv[])
             break;
         }
 
+        bool is_mode = strcmp(argv[i], "-c") == 0 ||
+                       strcmp(argv[i], "-d") == 0 ||
+                       strcmp(argv[i], "--compress") == 0 ||
+                       strcmp(argv[i], "--decompress") == 0;
         bool is_input =
             strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input") == 0;
         bool is_server =
@@ -84,7 +90,11 @@ Config *new_config(const int argc, const char *argv[])
         bool is_output =
             strcmp(argv[i], "-o") == 0 || strcmp(argv[i], "--output") == 0;
 
-        if (is_input) {
+        if (is_mode) {
+            bool is_compress = strcmp(argv[i], "-c") == 0 ||
+                               strcmp(argv[i], "--compress") == 0;
+            config->mode = is_compress ? COMPRESS : DECOMPRESS;
+        } else if (is_input) {
             check_arg(argv[i + 1], "-i/--input requires a file name");
             config->input_file = argv[++i];
         } else if (is_output) {
@@ -94,7 +104,7 @@ Config *new_config(const int argc, const char *argv[])
             free_config(&config);
             print_help();
         } else if (is_server) {
-            config->server_mode = true;
+            config->using_server = true;
         } else {
             fprintf(stderr, "Error: Unknown option: %s\n", argv[i]);
             free_config(&config);

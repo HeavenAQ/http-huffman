@@ -1,5 +1,5 @@
 GCC := gcc
-CFLAGS := -Wall -Wextra  -g
+CFLAGS := -Wall -Wextra -Werror -Wpedantic -Wconversion -std=c99 -g
 TARGET := $(wildcard src/*.c) 
 ELF := $(TARGET:.c=.o)
 EXEC := src/main

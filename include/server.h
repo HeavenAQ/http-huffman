@@ -16,8 +16,8 @@ struct Server {
     void (*get_client_request)(int client_socket, char **client_req,
                                size_t *req_len);
     char *(*handle_get_requests)(Server *self, const char *route);
-    const char *(*get_file_content)(Server *self, const char *const client_req,
-                                    size_t *raw_data_len);
+    const char *(*get_file_content)(Server *self, const char *const chunk,
+                                    const size_t chunk_len, long *content_len);
     void (*parse_url_params)(Server *self, const char *url, char *out_file,
                              char *service_type);
 };

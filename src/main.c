@@ -75,38 +75,21 @@ static void handle_upload(Server *server, const char *const chunk,
     char output_file[100];
     char service_type[100];
     HuffmanTree *tree = new_huffman_tree();
-    printf("chunk_len: %zu\n", chunk_len);
+    server->logger->info_log("Handling upload request", __FILE__, __LINE__);
+    server->logger->info_log("Parsing url params", __FILE__, __LINE__);
     server->parse_url_params(server, chunk, output_file, service_type);
 
-    // get boundary
-    char boundary_header[] = "Content-Type: multipart/form-data; boundary=";
-    char *boundary = strstr(chunk, boundary_header) + strlen(boundary_header);
-    char *end_boundary = strstr(boundary, "\r\n");
-    size_t boundary_len = (size_t)(end_boundary - boundary);
-    char b[boundary_len];
-    strncpy(b, boundary, boundary_len);
-
-    // get file content
-    char *start = strstr(chunk, b) + boundary_len + 2;
-    start = strstr(start, b) + boundary_len + 2;
-    start = strstr(start, "\r\n\r\n") + 4;
-    char *end = strstr(start, b);
-
-    // if there is no end boundary calculate the length by subtracting start of
-    // form with the beginning of the chunk
-    long len = (end == NULL) ? (long)chunk_len - (start - chunk)
-                             : end - start - 4; // 2 extra -- and  \r\n
-    printf("len: %ld\n", len);
-    for (int i = 0; i < len; i++) {
-        printf("%c", start[i]);
-    }
+    // get file content and length
+    long len = 0;
+    char *content =
+        (char *)server->get_file_content(server, chunk, chunk_len, &len);
 
     // compress or decompress the file
     char path[100] = "downloads/";
     strcat(path, output_file);
     (strcmp(service_type, "compress") == 0)
-        ? compress(tree, path, start, (size_t)len)
-        : decompress(tree, path, start, (size_t)len);
+        ? compress(tree, path, content, (size_t)len)
+        : decompress(tree, path, content, (size_t)len);
 
     tree->destroy(&tree);
 }
@@ -122,7 +105,6 @@ static void handle_download(Server *server, const char *const url,
 {
     server->logger->info_log("Handling download request", __FILE__, __LINE__);
     char output_file[100];
-    puts(url);
     sscanf(url, "/download?out_file=%s", output_file);
     char download_path[100] = "downloads/";
     strcat(download_path, output_file);

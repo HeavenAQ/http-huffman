@@ -1,5 +1,4 @@
 #include "../include/server.h"
-#include <limits.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -39,38 +38,33 @@ static char *handle_get_requests(Server *self, const char *route)
 /**
  * get_file_content - Get file content from POST request
  * @param self Server object
- * @param client_req client request to parse
+ * @param chunk http request to parse
+ * @param content_len length of the returned content
  * @return File content
  */
-static const char *get_file_content(Server *self __attribute__((unused)),
-                                    const char *const client_req,
-                                    size_t *raw_data_len)
+static const char *get_file_content(Server *self, const char *const chunk,
+                                    const size_t chunk_len, long *content_len)
 {
-    puts("Extracting file content...");
-    size_t data_start = 0;
-    int checked = 0; // should reach 3
-    char buf[INT_MAX];
-    while (sscanf(client_req + data_start, "%s", buf) != 0) {
-        puts(buf);
-        if (strncmp(buf, "------WebKitFormBoundary", 25) == 0 ||
-            strncmp(buf, "Content-Disposition:", 21) == 0 ||
-            strncmp(buf, "Content-Type:", 13) == 0) {
-            checked++;
-            if (checked == 3) {
-                break;
-            }
-        }
-        data_start += strlen(buf);
-    }
+    // get boundary
+    self->logger->info_log("Getting file content", __FILE__, __LINE__);
+    char boundary_header[] = "Content-Type: multipart/form-data; boundary=";
+    char *boundary = strstr(chunk, boundary_header) + strlen(boundary_header);
+    char *end_boundary = strstr(boundary, "\r\n");
+    size_t boundary_len = (size_t)(end_boundary - boundary);
+    char b[boundary_len];
+    strncpy(b, boundary, boundary_len);
 
-    *raw_data_len = data_start + 2; // skip \n
-    while (scanf(client_req + *raw_data_len, "%s", buf) != 0) {
-        if (strncmp(buf, "------WebKitFormBoundary", 25) == 0) {
-            break;
-        }
-        *raw_data_len += strlen(buf);
-    }
-    return client_req + data_start + 2; // skip \n
+    // get file content
+    char *start = strstr(chunk, b) + boundary_len + 2;
+    start = strstr(start, b) + boundary_len + 2;
+    start = strstr(start, "\r\n\r\n") + 4;
+    char *end = strstr(start, b);
+
+    // if there is no end boundary calculate the length by subtracting start of
+    // form with the beginning of the chunk
+    *content_len = (end == NULL) ? (long)chunk_len - (start - chunk)
+                                 : end - start - 4; // 2 extra -- and  \r\n
+    return start;
 }
 
 /** get_content_length - Get http request content length

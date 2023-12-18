@@ -118,6 +118,7 @@ static void build_tree(HuffmanTree *self, Node *arr[], const size_t len)
         tmp[end++] = merge_node(tmp[i], tmp[i + 1]);
     }
     self->logger->info_log("Tree built", __FILE__, __LINE__);
+    free(tmp);
 }
 
 /**

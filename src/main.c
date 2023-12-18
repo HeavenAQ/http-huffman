@@ -36,6 +36,11 @@ void compress(HuffmanTree *tree, const char *const output_file, char *raw_data,
 
     // print header
     tree->logger->info_log("Done", __FILE__, __LINE__);
+
+    // clean up
+    free(encoded_data);
+    for (size_t i = 0; i < tree->size; i++)
+        free((void *)code_table[i]);
 }
 
 void decompress(HuffmanTree *tree, const char *const output_file,
@@ -62,6 +67,7 @@ static void cli_mode(Config *config)
         ? compress(tree, config->output_file, raw_data, raw_data_len)
         : decompress(tree, config->output_file, raw_data, raw_data_len);
     tree->destroy(&tree);
+    free(tree);
 }
 
 /**
@@ -175,7 +181,6 @@ static void handle_client_request(Server *server, int client_socket)
     } else if (strcmp(method, "POST") == 0) {
         if (strncmp(route, "/upload", 7) == 0) {
             handle_upload(server, chunk, req_len);
-            free(chunk);
         } else {
             server->send_not_found_response(client_socket);
         }
@@ -183,6 +188,7 @@ static void handle_client_request(Server *server, int client_socket)
     } else {
         server->send_not_found_response(client_socket);
     }
+    free(chunk);
 }
 
 /**
